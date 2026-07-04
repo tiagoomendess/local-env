@@ -1,6 +1,6 @@
 # Local Env
 
-Portable local environment for common development dependencies — databases, caching, and AWS service emulation. Spin up the whole stack with a single command.
+Portable local environment for common development dependencies like databases, caching, and AWS service emulation. Spin up the whole stack with a single command.
 
 ## Services
 
