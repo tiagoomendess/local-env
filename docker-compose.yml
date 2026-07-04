@@ -15,11 +15,8 @@ services:
     ports:
       - "${MYSQL_PORT}:3306"
     volumes:
-      # Persistent data storage in your local folder
       - ./mysql/data:/var/lib/mysql
-      # Custom MySQL configuration
       - ./mysql/conf:/etc/mysql/conf.d
-      # Initialization scripts (run only on first container start)
       - ./mysql/init:/docker-entrypoint-initdb.d
     networks:
       - local-network
@@ -49,12 +46,35 @@ services:
     ports:
       - "${REDIS_PORT}:6379"
     volumes:
-      # Persistent Redis data in your local folder
       - ./redis/data:/data
     networks:
       - local-network
     healthcheck:
       test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  localstack:
+    image: localstack/localstack:${LOCALSTACK_VERSION}
+    container_name: local-localstack
+    restart: unless-stopped
+    ports:
+      - "${LOCALSTACK_PORT}:4566"
+    environment:
+      - SERVICES=s3,sqs,sns
+      - DEBUG=0
+      - PERSISTENCE=1
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
+    volumes:
+      - ./localstack/data:/var/lib/localstack
+      - ./localstack/init:/etc/localstack/init/ready.d
+    networks:
+      - local-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
       interval: 10s
       timeout: 5s
       retries: 5

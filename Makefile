@@ -1,4 +1,4 @@
-.PHONY: help start stop restart status logs clean rebuild shell mysql-shell redis-shell
+.PHONY: help start stop restart status logs clean rebuild shell mysql-shell redis-shell start-localstack stop-localstack restart-localstack localstack-logs s3-ls s3-shell sqs-ls sns-ls
 
 # Default target
 .DEFAULT_GOAL := help
@@ -34,6 +34,11 @@ start-redis: ## Start only Redis
 	$(DC) up -d redis
 	@echo "$(GREEN)Redis started!$(NC)"
 
+start-localstack: ## Start only LocalStack (S3, SQS, SNS)
+	@echo "$(GREEN)Starting LocalStack...$(NC)"
+	$(DC) up -d localstack
+	@echo "$(GREEN)LocalStack started!$(NC)"
+
 # Stop services
 stop: ## Stop all services
 	@echo "$(YELLOW)Stopping all services...$(NC)"
@@ -49,6 +54,11 @@ stop-redis: ## Stop only Redis
 	@echo "$(YELLOW)Stopping Redis...$(NC)"
 	$(DC) stop redis
 	@echo "$(YELLOW)Redis stopped!$(NC)"
+
+stop-localstack: ## Stop only LocalStack
+	@echo "$(YELLOW)Stopping LocalStack...$(NC)"
+	$(DC) stop localstack
+	@echo "$(YELLOW)LocalStack stopped!$(NC)"
 
 # Restart services
 restart: ## Restart all services
@@ -66,6 +76,11 @@ restart-redis: ## Restart only Redis
 	$(DC) restart redis
 	@echo "$(GREEN)Redis restarted!$(NC)"
 
+restart-localstack: ## Restart only LocalStack
+	@echo "$(YELLOW)Restarting LocalStack...$(NC)"
+	$(DC) restart localstack
+	@echo "$(GREEN)LocalStack restarted!$(NC)"
+
 # Status and logs
 status: ## Show status of all services
 	@echo "$(GREEN)Service status:$(NC)"
@@ -80,6 +95,9 @@ mysql-logs: ## View MySQL logs
 redis-logs: ## View Redis logs
 	$(DC) logs -f redis
 
+localstack-logs: ## View LocalStack logs
+	$(DC) logs -f localstack
+
 # Shell access
 mysql-shell: ## Open MySQL CLI
 	@echo "$(GREEN)Connecting to MySQL...$(NC)"
@@ -92,6 +110,22 @@ mysql-shell-dev: ## Open MySQL CLI as dev user
 redis-shell: ## Open Redis CLI
 	@echo "$(GREEN)Connecting to Redis...$(NC)"
 	$(DC) exec redis redis-cli -a $$(grep REDIS_PASSWORD .env | cut -d '=' -f2)
+
+s3-ls: ## List all S3 buckets in LocalStack
+	@echo "$(GREEN)Listing S3 buckets...$(NC)"
+	$(DC) exec localstack awslocal s3 ls
+
+sqs-ls: ## List all SQS queues in LocalStack
+	@echo "$(GREEN)Listing SQS queues...$(NC)"
+	$(DC) exec localstack awslocal sqs list-queues
+
+sns-ls: ## List all SNS topics in LocalStack
+	@echo "$(GREEN)Listing SNS topics...$(NC)"
+	$(DC) exec localstack awslocal sns list-topics
+
+s3-shell: ## Open bash in LocalStack container
+	@echo "$(GREEN)Opening LocalStack shell...$(NC)"
+	$(DC) exec localstack bash
 
 # Bash shell in containers
 bash-mysql: ## Open bash in MySQL container
