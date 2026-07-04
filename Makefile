@@ -1,4 +1,4 @@
-.PHONY: help start stop restart status logs clean rebuild shell mysql-shell redis-shell start-localstack stop-localstack restart-localstack localstack-logs s3-ls s3-shell sqs-ls sns-ls start-mongodb stop-mongodb restart-mongodb mongodb-logs mongodb-shell mongodb-shell-dev bash-mongodb backup-mongodb
+.PHONY: help start stop restart status logs clean rebuild shell mysql-shell redis-shell start-localstack stop-localstack restart-localstack localstack-logs s3-ls s3-shell sqs-ls sns-ls start-mongodb stop-mongodb restart-mongodb mongodb-logs mongodb-shell mongodb-shell-dev bash-mongodb backup-mongodb monitor
 
 # Default target
 .DEFAULT_GOAL := help
@@ -100,6 +100,9 @@ restart-localstack: ## Restart only LocalStack
 status: ## Show status of all services
 	@echo "$(GREEN)Service status:$(NC)"
 	$(DC) ps
+
+monitor: ## Live resource usage for all running containers
+	docker stats
 
 logs: ## View logs for all services
 	$(DC) logs -f
