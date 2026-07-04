@@ -1,0 +1,5 @@
+FROM mongo:7
+
+ENV TZ=UTC
+
+EXPOSE 27017

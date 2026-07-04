@@ -1,4 +1,4 @@
-.PHONY: help start stop restart status logs clean rebuild shell mysql-shell redis-shell start-localstack stop-localstack restart-localstack localstack-logs s3-ls s3-shell sqs-ls sns-ls
+.PHONY: help start stop restart status logs clean rebuild shell mysql-shell redis-shell start-localstack stop-localstack restart-localstack localstack-logs s3-ls s3-shell sqs-ls sns-ls start-mongodb stop-mongodb restart-mongodb mongodb-logs mongodb-shell mongodb-shell-dev bash-mongodb backup-mongodb
 
 # Default target
 .DEFAULT_GOAL := help
@@ -34,6 +34,11 @@ start-redis: ## Start only Redis
 	$(DC) up -d redis
 	@echo "$(GREEN)Redis started!$(NC)"
 
+start-mongodb: ## Start only MongoDB
+	@echo "$(GREEN)Starting MongoDB...$(NC)"
+	$(DC) up -d mongodb
+	@echo "$(GREEN)MongoDB started!$(NC)"
+
 start-localstack: ## Start only LocalStack (S3, SQS, SNS)
 	@echo "$(GREEN)Starting LocalStack...$(NC)"
 	$(DC) up -d localstack
@@ -54,6 +59,11 @@ stop-redis: ## Stop only Redis
 	@echo "$(YELLOW)Stopping Redis...$(NC)"
 	$(DC) stop redis
 	@echo "$(YELLOW)Redis stopped!$(NC)"
+
+stop-mongodb: ## Stop only MongoDB
+	@echo "$(YELLOW)Stopping MongoDB...$(NC)"
+	$(DC) stop mongodb
+	@echo "$(YELLOW)MongoDB stopped!$(NC)"
 
 stop-localstack: ## Stop only LocalStack
 	@echo "$(YELLOW)Stopping LocalStack...$(NC)"
@@ -76,6 +86,11 @@ restart-redis: ## Restart only Redis
 	$(DC) restart redis
 	@echo "$(GREEN)Redis restarted!$(NC)"
 
+restart-mongodb: ## Restart only MongoDB
+	@echo "$(YELLOW)Restarting MongoDB...$(NC)"
+	$(DC) restart mongodb
+	@echo "$(GREEN)MongoDB restarted!$(NC)"
+
 restart-localstack: ## Restart only LocalStack
 	@echo "$(YELLOW)Restarting LocalStack...$(NC)"
 	$(DC) restart localstack
@@ -95,6 +110,9 @@ mysql-logs: ## View MySQL logs
 redis-logs: ## View Redis logs
 	$(DC) logs -f redis
 
+mongodb-logs: ## View MongoDB logs
+	$(DC) logs -f mongodb
+
 localstack-logs: ## View LocalStack logs
 	$(DC) logs -f localstack
 
@@ -106,6 +124,14 @@ mysql-shell: ## Open MySQL CLI
 mysql-shell-dev: ## Open MySQL CLI as dev user
 	@echo "$(GREEN)Connecting to MySQL as dev user...$(NC)"
 	$(DC) exec mysql mysql -u devuser -p
+
+mongodb-shell: ## Open MongoDB shell as root
+	@echo "$(GREEN)Connecting to MongoDB as root...$(NC)"
+	$(DC) exec mongodb mongosh -u $$(grep MONGO_ROOT_USERNAME .env | cut -d '=' -f2) -p $$(grep MONGO_ROOT_PASSWORD .env | cut -d '=' -f2)
+
+mongodb-shell-dev: ## Open MongoDB shell as dev user
+	@echo "$(GREEN)Connecting to MongoDB as dev user...$(NC)"
+	$(DC) exec mongodb mongosh -u $$(grep MONGO_USER .env | cut -d '=' -f2) -p $$(grep MONGO_PASSWORD .env | cut -d '=' -f2) $$(grep MONGO_DATABASE .env | cut -d '=' -f2)
 
 redis-shell: ## Open Redis CLI
 	@echo "$(GREEN)Connecting to Redis...$(NC)"
@@ -131,6 +157,9 @@ s3-shell: ## Open bash in LocalStack container
 bash-mysql: ## Open bash in MySQL container
 	$(DC) exec mysql bash
 
+bash-mongodb: ## Open bash in MongoDB container
+	$(DC) exec mongodb bash
+
 bash-redis: ## Open bash in Redis container
 	$(DC) exec redis sh
 
@@ -152,6 +181,14 @@ clean-all: ## Remove everything including data volumes (WARNING: deletes all dat
 	fi
 
 # Backup and restore
+backup-mongodb: ## Backup MongoDB database to file
+	@echo "$(GREEN)Backing up MongoDB database...$(NC)"
+	$(DC) exec mongodb mongodump --username $$(grep MONGO_ROOT_USERNAME .env | cut -d '=' -f2) \
+		--password $$(grep MONGO_ROOT_PASSWORD .env | cut -d '=' -f2) \
+		--db $$(grep MONGO_DATABASE .env | cut -d '=' -f2) \
+		--archive > backups/mongodb_backup_$$(date +%Y%m%d_%H%M%S).archive
+	@echo "$(GREEN)Backup created in backups/ folder!$(NC)"
+
 backup-mysql: ## Backup MySQL database to file
 	@echo "$(GREEN)Backing up MySQL database...$(NC)"
 	$(DC) exec mysql mysqldump -u root -p$$(grep MYSQL_ROOT_PASSWORD .env | cut -d '=' -f2) \

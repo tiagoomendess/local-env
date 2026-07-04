@@ -8,6 +8,7 @@ Portable local environment for common development dependencies — databases, ca
 |--------------------|---------------------------|--------------|------------------------------|
 | MySQL              | `mysql:8.0`               | `3306`       | Relational database          |
 | Redis              | `redis:7-alpine`          | `6379`       | Cache / message broker       |
+| MongoDB            | `mongo:7`                 | `27017`      | Document database            |
 | LocalStack S3      | `localstack/localstack:3` | `4566`       | AWS S3 emulation             |
 | LocalStack SQS     | `localstack/localstack:3` | `4566`       | AWS SQS queues               |
 | LocalStack SNS     | `localstack/localstack:3` | `4566`       | AWS SNS topics & subscriptions |
@@ -47,16 +48,19 @@ make logs               # Tail logs for all services
 # Per-service control
 make start-mysql        # Start only MySQL
 make start-redis        # Start only Redis
+make start-mongodb      # Start only MongoDB
 make start-localstack   # Start only LocalStack
 
-make stop-mysql / stop-redis / stop-localstack
-make restart-mysql / restart-redis / restart-localstack
-make mysql-logs / redis-logs / localstack-logs
+make stop-mysql / stop-redis / stop-mongodb / stop-localstack
+make restart-mysql / restart-redis / restart-mongodb / restart-localstack
+make mysql-logs / redis-logs / mongodb-logs / localstack-logs
 
 # Shells
 make mysql-shell        # MySQL CLI (root)
 make mysql-shell-dev    # MySQL CLI (dev user)
 make redis-shell        # Redis CLI
+make mongodb-shell      # MongoDB shell (root)
+make mongodb-shell-dev  # MongoDB shell (dev user)
 make s3-shell           # Bash in LocalStack container
 
 # S3 / SQS / SNS
@@ -169,6 +173,7 @@ Edit `localstack/init/02-create-queues-topics.sh` to add or remove queues, topic
 |-----------|-----------------------|------------------------------------------------|
 | MySQL     | `./mysql/data`        | Persisted across restarts                      |
 | Redis     | `./redis/data`        | AOF persistence enabled                        |
+| MongoDB   | `./mongodb/data`      | Persisted across restarts                      |
 | LocalStack | `./localstack/data`  | `PERSISTENCE=1`; state survives restarts       |
 
 Data folders are git-ignored (`.gitignore` covers `*/data/*`). Only the `.gitkeep` placeholder is tracked.
