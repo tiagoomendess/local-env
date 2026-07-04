@@ -1,0 +1,28 @@
+# Environment variables (contains secrets)
+.env
+
+# MySQL data - keep the data folder but ignore contents
+mysql/data/*
+!mysql/data/.gitkeep
+
+# Redis data - keep the data folder but ignore contents
+redis/data/*
+!redis/data/.gitkeep
+
+# Any future service data folders
+*/data/*
+!*/data/.gitkeep
+
+# Docker
+docker-compose.override.yml
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
